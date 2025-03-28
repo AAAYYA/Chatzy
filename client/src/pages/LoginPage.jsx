@@ -4,17 +4,18 @@ import { loginUser } from '../api/auth';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!username.trim()) {
-      alert('Username required');
+    if (!username.trim() || !password.trim()) {
+      alert('Username et password requis');
       return;
     }
 
     try {
-      const { token } = await loginUser(username);
+      const { token } = await loginUser(username, password);
       localStorage.setItem('chatzy_token', token);
       navigate('/chat');
     } catch (err) {
@@ -32,10 +33,27 @@ export default function LoginPage() {
           placeholder="Enter your username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          style={{ width: '100%', padding: '8px' }}
+          style={{ width: '100%', padding: '8px', marginBottom: '8px' }}
+        />
+        <input
+          type="password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ width: '100%', padding: '8px', marginBottom: '8px' }}
         />
         <button type="submit">Sign in</button>
       </form>
+
+      <p style={{ marginTop: '10px' }}>
+        Pas de compte ?{' '}
+        <span
+          onClick={() => navigate('/register')}
+          style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
+        >
+          Inscris-toi
+        </span>
+      </p>
     </div>
   );
 }

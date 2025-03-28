@@ -9,7 +9,7 @@ It focuses on clean design, real-time communication, and a lightweight architect
 ## 🚀 Tech Stack
 
 - **Frontend**: React
-- **Backend**: Bun + Hono v2
+- **Backend**: Bun + Hono
 - **ORM**: Drizzle ORM
 - **Database**: PostgreSQL
 - **Realtime**: WebSocket

@@ -41,18 +41,35 @@ messagesRoute.post('/', async (c) => {
 });
 
 messagesRoute.delete('/:id', async (c) => {
-    const idParam = c.req.param('id');
-    const id = Number(idParam);
-    const existing = await db.select().from(messages).where(eq(messages.id, id));
-    if (existing.length === 0) {
+    try {
+      const idParam = c.req.param('id');
+      const id = Number(idParam);
+      const body = await c.req.json<{ userId: number }>();
+      const { userId } = body;
+  
+      if (!userId) {
+        return c.json({ error: 'userId is required' }, 400);
+      }
+  
+      const existing = await db.select().from(messages).where(eq(messages.id, id));
+      if (existing.length === 0) {
         return c.json({ error: 'Message not found' }, 404);
-    }
-    await db.delete(messages).where(eq(messages.id, id));
-    return c.json({
+      }
+  
+      if (existing[0].userId !== userId) {
+        return c.json({ error: 'Unauthorized' }, 403);
+      }
+  
+      await db.delete(messages).where(eq(messages.id, id));
+      return c.json({
         message: 'Message deleted successfully',
         data: existing[0],
-    });
-});
+      });
+    } catch (err: any) {
+      return c.json({ error: err.message }, 500);
+    }
+  });
+  
 
 messagesRoute.put('/:id', async (c) => {
     const idParam = c.req.param('id');

@@ -16,17 +16,30 @@ userRoute.get('/', async (c) => {
 
 userRoute.post('/', async (c) => {
   try {
-    const body = await c.req.json<{ username: string }>();
-    const { username } = body;
+    const body = await c.req.json<{
+      username: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+    }>();
 
-    if (!username) {
-      return c.json({ error: 'Username is required' }, 400);
+    const { username, email, firstName, lastName, phone } = body;
+
+    if (!username || !email || !firstName || !lastName || !phone) {
+      return c.json({ error: 'Tous les champs sont requis' }, 400);
     }
 
-    const inserted = await db.insert(users).values({ username }).returning();
+    const inserted = await db.insert(users).values({
+      username,
+      email,
+      firstName,
+      lastName,
+      phone,
+    }).returning();
 
     return c.json({
-      message: 'User created successfully',
+      message: 'Utilisateur créé avec succès',
       data: inserted[0],
     });
   } catch (err: any) {

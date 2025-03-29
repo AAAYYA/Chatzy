@@ -1,13 +1,12 @@
-name: Deploy Chatzy Frontend to GitHub Pages
+name: Deploy frontend to GitHub Pages
 
 on:
   push:
     branches: [main]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: client
@@ -15,25 +14,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      - name: Install deps
+      - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build project
         run: npm run build
 
-      - name: Copy to root for GitHub Pages
-        run: |
-          mkdir -p ../client-dist
-          cp -r dist/* ../client-dist/
-
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          folder: client-dist
-          branch: main
-          clean: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: client/dist

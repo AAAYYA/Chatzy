@@ -21,7 +21,16 @@ export const users = pgTable('users', {
 
 export const messages = pgTable('messages', {
     id: serial('id').primaryKey(),
-    content: text('content').notNull(),
+    conversationId: integer('conversation_id').notNull(),
     userId: integer('user_id').notNull(),
+    content: text('content').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+  });  
+
+export const conversations = pgTable('conversations', {
+    id: serial('id').primaryKey(),
+    user1Id: integer('user1_id').notNull(),
+    user2Id: integer('user2_id').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  });
+  

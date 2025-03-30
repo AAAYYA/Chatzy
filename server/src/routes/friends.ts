@@ -64,4 +64,56 @@ friendRoute.get('/', authMiddleware, async (c) => {
     return c.json({ data: friends });
 });
 
+friendRoute.get('/requests', authMiddleware, async (c) => {
+    const userId = c.get('userId');
+
+    const pending = await db
+        .select({
+            id: friendships.id,
+            requesterId: friendships.requesterId,
+            createdAt: friendships.createdAt,
+            username: users.username,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            avatarUrl: users.avatarUrl,
+        })
+        .from(friendships)
+        .innerJoin(users, eq(friendships.requesterId, users.id))
+        .where(and(
+            eq(friendships.recipientId, userId),
+            eq(friendships.status, 'pending')
+        ));
+
+    return c.json({ data: pending });
+});
+
+friendRoute.post('/respond', authMiddleware, async (c) => {
+    const userId = c.get('userId');
+    const body = await c.req.json<{
+        requestId: number;
+        action: 'accept' | 'reject';
+    }>();
+
+    const { requestId, action } = body;
+
+    if (!requestId || !['accept', 'reject'].includes(action)) {
+        return c.json({ error: 'Invalid payload' }, 400);
+    }
+
+    const existing = await db.select().from(friendships).where(eq(friendships.id, requestId));
+    const request = existing[0];
+
+    if (!request || request.recipientId !== userId || request.status !== 'pending') {
+        return c.json({ error: 'Invalid or unauthorized request' }, 403);
+    }
+
+    const updated = await db
+        .update(friendships)
+        .set({ status: action === 'accept' ? 'accepted' : 'rejected' })
+        .where(eq(friendships.id, requestId))
+        .returning();
+
+    return c.json({ message: `Request ${action}ed`, data: updated[0] });
+});
+
 export { friendRoute };

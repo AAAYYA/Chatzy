@@ -5,6 +5,7 @@ import { wsApp, websocket } from './ws/socket';
 import { authRoute } from './routes/auth';
 import { cors } from 'hono/cors';
 import { conversationRoute } from './routes/conversations';
+import { friendRoute } from './routes/friends';
 
 const app = new Hono();
 
@@ -19,6 +20,7 @@ app.route('/api/auth', authRoute);
 app.route('/api/users', userRoute);
 app.route('/api/messages', messagesRoute);
 app.route('/api/conversations', conversationRoute);
+app.route('/api/friends', friendRoute);
 
 app.route('/', wsApp);
 

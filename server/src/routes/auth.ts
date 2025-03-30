@@ -4,6 +4,7 @@ import { users } from '../db/schema/schema';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 import bcrypt from 'bcrypt';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 export const authRoute = new Hono();
 
@@ -94,4 +95,18 @@ authRoute.post('/register', async (c) => {
   } catch (err: any) {
     return c.json({ error: err.message }, 500);
   }
+});
+
+authRoute.get('/me', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+
+  if (!user) {
+    return c.json({ error: 'User not found' }, 404);
+  }
+
+  const { password, ...safeUser } = user;
+
+  return c.json({ data: safeUser });
 });

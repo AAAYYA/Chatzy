@@ -1,12 +1,12 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
 import TopBar from './components/layout/TopBar';
+import { Outlet } from 'react-router-dom';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-bg text-text font-sans">
+    <div className="h-screen flex flex-col bg-bg text-text font-sans">
       <TopBar />
-      <main className="flex h-[calc(100vh-72px)]">
+      <main className="flex-1 flex min-h-0">
         <Outlet />
       </main>
     </div>

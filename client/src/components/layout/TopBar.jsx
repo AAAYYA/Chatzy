@@ -3,27 +3,42 @@ import { Link, useLocation } from 'react-router-dom';
 
 export default function TopBar() {
   const location = useLocation();
+
   return (
-    <header className="bg-primary text-white px-6 py-4 shadow">
-      <div className="max-w-4xl mx-auto flex justify-between items-center">
-        <div className="flex items-center space-x-3">
+    <header className="bg-primary text-white h-16 shadow relative overflow-hidden">
+      <div className="max-w-7xl mx-auto w-full h-full flex items-center justify-center">
+        
+        <div className="flex items-center" style={{ gap: '0px' }}>
           <img
-            src="/assets/chatzy-logo-white.png"
-            alt="Chatzy Logo"
-            className="w-10 h-10"
+            src="/assets/nubbly-logo-white.png"
+            alt="Nubbly Logo"
+            className="object-contain"
+            style={{
+              height: '90px'
+            }}
           />
-          <h1 className="text-xl font-semibold">Chatzy</h1>
+
+          <img
+            src="/assets/nubbly-text-white.png"
+            alt="Nubbly Text"
+            className="object-contain"
+            style={{
+              height: '90px',
+              marginLeft: '-18px'
+            }}
+          />
         </div>
-        <nav className="space-x-4 text-sm font-medium">
-          {location.pathname !== '/login' && (
-            <Link to="/login" className="hover:underline">Login</Link>
-          )}
-          {location.pathname !== '/register' && (
-            <Link to="/register" className="hover:underline">Register</Link>
-          )}
-          <Link to="/chat" className="hover:underline">Chat</Link>
-        </nav>
       </div>
+
+      <nav className="text-lg font-medium absolute top-0 right-6 h-full flex items-center space-x-6">
+        {location.pathname !== '/login' && (
+          <Link to="/login" className="hover:underline">Login</Link>
+        )}
+        {location.pathname !== '/register' && (
+          <Link to="/register" className="hover:underline">Register</Link>
+        )}
+        <Link to="/chat" className="hover:underline">Chat</Link>
+      </nav>
     </header>
   );
 }

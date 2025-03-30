@@ -7,7 +7,6 @@ export default function TopBar() {
 
   return (
     <header className="bg-primary text-white h-16 shadow relative">
-      {/* Logos positionnés à gauche, centrés verticalement */}
       <div className="absolute left-6 flex items-center top-1/2 transform -translate-y-1/2">
         <img
           src="/assets/nubbly-logo-white.png"
@@ -23,12 +22,10 @@ export default function TopBar() {
         />
       </div>
 
-      {/* Avatar de profil centré */}
       <div className="flex justify-center items-center h-full">
         <ProfileAvatar />
       </div>
 
-      {/* Navigation positionnée à droite, centrée verticalement */}
       <nav className="absolute right-6 flex items-center space-x-6 text-lg font-medium top-1/2 transform -translate-y-1/2">
         {location.pathname !== '/login' && (
           <Link to="/login" className="hover:underline">

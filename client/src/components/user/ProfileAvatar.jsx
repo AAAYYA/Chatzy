@@ -3,7 +3,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 export default function ProfileAvatar() {
-    const { user } = useContext(AuthContext);
+    const { user, logout } = useContext(AuthContext);
     const [open, setOpen] = useState(false);
     const panelRef = useRef(null);
 
@@ -27,7 +27,6 @@ export default function ProfileAvatar() {
 
     return (
         <div className="relative inline-block">
-            {/* Avatar circulaire cliquable */}
             <div
                 className="w-10 h-10 rounded-full overflow-hidden cursor-pointer border-2 border-white"
                 onClick={() => setOpen((prev) => !prev)}
@@ -39,7 +38,6 @@ export default function ProfileAvatar() {
                 />
             </div>
 
-            {/* Dropdown centré par rapport au cercle */}
             {open && (
                 <div
                     ref={panelRef}
@@ -75,6 +73,17 @@ export default function ProfileAvatar() {
                     >
                         Voir mon profil
                     </Link>
+
+                    <button
+                        onClick={() => {
+                            logout();
+                            setOpen(false);
+                        }}
+                        className="block text-primary text-sm font-medium hover:underline mt-2"
+                    >
+                        Déconnexion
+                    </button>
+
                 </div>
             )}
         </div>

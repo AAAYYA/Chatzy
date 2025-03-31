@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../api/auth';
+import { AuthContext } from '../context/AuthContext';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -16,7 +18,7 @@ export default function LoginPage() {
 
     try {
       const { token } = await loginUser(username, password);
-      localStorage.setItem('chatzy_token', token);
+      login(token);
       navigate('/chat');
     } catch (err) {
       console.error(err);

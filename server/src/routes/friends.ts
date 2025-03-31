@@ -8,30 +8,52 @@ const friendRoute = new Hono();
 
 friendRoute.post('/', authMiddleware, async (c) => {
     const userId = c.get('userId');
-    const body = await c.req.json<{ recipientId: number }>();
+    const { recipientUsername } = await c.req.json<{ recipientUsername: string }>();
 
-    if (!body.recipientId || body.recipientId === userId) {
-        return c.json({ error: 'Invalid recipient' }, 400);
+    if (!recipientUsername) {
+        return c.json({ error: 'recipientUsername is required' }, 400);
     }
 
-    const existing = await db.select().from(friendships).where(
-        or(
-            and(eq(friendships.requesterId, userId), eq(friendships.recipientId, body.recipientId)),
-            and(eq(friendships.requesterId, body.recipientId), eq(friendships.recipientId, userId))
-        )
-    );
+    const [recipientUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, recipientUsername));
+
+    if (!recipientUser) {
+        return c.json({ error: 'No user found with this username' }, 404);
+    }
+
+    if (recipientUser.id === userId) {
+        return c.json({ error: 'You cannot add yourself' }, 400);
+    }
+
+    const existing = await db
+        .select()
+        .from(friendships)
+        .where(
+            or(
+                and(eq(friendships.requesterId, userId), eq(friendships.recipientId, recipientUser.id)),
+                and(eq(friendships.requesterId, recipientUser.id), eq(friendships.recipientId, userId))
+            )
+        );
 
     if (existing.length > 0) {
-        return c.json({ error: 'Friend request already exists or pending' }, 409);
+        return c.json({ error: 'Friend request already exists or you are already friends' }, 409);
     }
 
-    const inserted = await db.insert(friendships).values({
-        requesterId: userId,
-        recipientId: body.recipientId,
-        status: 'pending',
-    }).returning();
+    const inserted = await db
+        .insert(friendships)
+        .values({
+            requesterId: userId,
+            recipientId: recipientUser.id,
+            status: 'pending',
+        })
+        .returning();
 
-    return c.json({ message: 'Friend request sent', data: inserted[0] });
+    return c.json({
+        message: 'Friend request sent',
+        data: inserted[0],
+    });
 });
 
 friendRoute.get('/', authMiddleware, async (c) => {
@@ -48,7 +70,13 @@ friendRoute.get('/', authMiddleware, async (c) => {
             )
         );
 
-    const friendIds = result.map(r => r.requesterId === userId ? r.recipientId : r.requesterId);
+    const friendIds = result.map(r =>
+        r.requesterId === userId ? r.recipientId : r.requesterId
+    );
+
+    if (friendIds.length === 0) {
+        return c.json({ data: [] });
+    }
 
     const friends = await db.select({
         id: users.id,
@@ -57,9 +85,11 @@ friendRoute.get('/', authMiddleware, async (c) => {
         lastName: users.lastName,
         avatarUrl: users.avatarUrl,
         bio: users.bio,
-    }).from(users).where(
-        or(...friendIds.map(id => eq(users.id, id)))
-    );
+    })
+        .from(users)
+        .where(
+            or(...friendIds.map(id => eq(users.id, id)))
+        );
 
     return c.json({ data: friends });
 });
@@ -114,6 +144,11 @@ friendRoute.post('/respond', authMiddleware, async (c) => {
         .returning();
 
     return c.json({ message: `Request ${action}ed`, data: updated[0] });
+});
+
+friendRoute.get('/debug', async (c) => {
+    const all = await db.select().from(friendships);
+    return c.json({ data: all });
 });
 
 export { friendRoute };

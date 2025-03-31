@@ -1,23 +1,44 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
+import AddFriendForm from '../friends/AddFriendForm';
+import PendingRequests from '../friends/PendingRequests';
 
 export default function Sidebar() {
-    const users = [
-        { id: 1, name: 'Alice' },
-        { id: 2, name: 'Bob' },
-    ];
+    const { token, friends, refresh, user } = useContext(AuthContext);
+
+    function handleFriendClick(friendId) {
+        console.log('Ami cliqué :', friendId);
+    }
+
+    const filteredFriends = friends.filter((friend) => friend.id !== user.id);
 
     return (
-        <aside className="w-64 h-full bg-accent border-r border-gray-300 p-4 shadow-md">
-            <h2 className="text-lg font-bold mb-4">Users</h2>
-            <ul className="space-y-2">
-                {users.map((user) => (
-                    <li
-                        key={user.id}
-                        className="cursor-pointer hover:bg-primary hover:text-white px-3 py-2 rounded transition-colors"
-                    >
-                        {user.name}
-                    </li>
-                ))}
+        <aside className="w-64 h-full bg-accent border-r border-gray-300 p-4 shadow-md flex flex-col">
+            <h2 className="text-lg font-bold mb-2">Friends</h2>
+
+            <AddFriendForm
+                token={token}
+                onSuccess={() => {
+                    refresh();
+                }}
+            />
+
+            <PendingRequests />
+
+            <ul className="space-y-2 flex-1 overflow-auto">
+                {filteredFriends && filteredFriends.length > 0 ? (
+                    filteredFriends.map((friend) => (
+                        <li
+                            key={friend.id}
+                            className="cursor-pointer hover:bg-primary hover:text-white px-3 py-2 rounded transition-colors"
+                            onClick={() => handleFriendClick(friend.id)}
+                        >
+                            {friend.username}
+                        </li>
+                    ))
+                ) : (
+                    <p className="text-sm text-gray-500">Aucun ami pour le moment</p>
+                )}
             </ul>
         </aside>
     );

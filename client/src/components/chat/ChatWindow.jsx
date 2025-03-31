@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
+import { AuthContext } from '../../context/AuthContext';
 
 export default function ChatWindow({ conversationId }) {
   const [messages, setMessages] = useState([]);
+  const { user } = useContext(AuthContext);
+  const myId = user?.id;
 
   useEffect(() => {
     if (!conversationId) {
@@ -36,7 +39,7 @@ export default function ChatWindow({ conversationId }) {
         <>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} />
+              <MessageBubble key={msg.id} message={msg} currentUserId={myId} />
             ))}
           </div>
 

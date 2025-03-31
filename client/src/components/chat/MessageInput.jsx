@@ -16,11 +16,17 @@ export default function MessageInput({ conversationId, onSendMessage }) {
       );
 
       setText('');
-
       onSendMessage?.(res.data.data);
 
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSend();
     }
   }
 
@@ -32,6 +38,7 @@ export default function MessageInput({ conversationId, onSendMessage }) {
         className="flex-1 border rounded-l px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
       />
       <button
         onClick={handleSend}

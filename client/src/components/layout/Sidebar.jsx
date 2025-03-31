@@ -1,13 +1,26 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
+import axios from 'axios';
 import AddFriendForm from '../friends/AddFriendForm';
 import PendingRequests from '../friends/PendingRequests';
 
-export default function Sidebar() {
+export default function Sidebar({ onSelectConversation }) {
     const { token, friends, refresh, user } = useContext(AuthContext);
 
-    function handleFriendClick(friendId) {
-        console.log('Ami cliqué :', friendId);
+    async function handleFriendClick(friendId) {
+        try {
+            const res = await axios.post(
+                'http://localhost:3000/api/conversations',
+                { recipientId: friendId },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const conversation = res.data.data;
+            onSelectConversation(conversation.id);
+        } catch (err) {
+            console.error(err);
+            alert('Erreur lors de la création/récupération de conversation');
+        }
     }
 
     const filteredFriends = friends.filter((friend) => friend.id !== user.id);

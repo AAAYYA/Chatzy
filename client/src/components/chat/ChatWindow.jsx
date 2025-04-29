@@ -1,13 +1,15 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import axios from 'axios';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import { AuthContext } from '../../context/AuthContext';
+import useChatSocket from '../../hooks/useChatSocket';
 
 export default function ChatWindow({ conversationId }) {
   const [messages, setMessages] = useState([]);
   const { user } = useContext(AuthContext);
   const myId = user?.id;
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     if (!conversationId) {
@@ -16,7 +18,6 @@ export default function ChatWindow({ conversationId }) {
     }
 
     const token = localStorage.getItem('chatzy_token');
-
     axios
       .get(`http://localhost:3000/api/conversations/${conversationId}/messages`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -25,8 +26,30 @@ export default function ChatWindow({ conversationId }) {
       .catch(console.error);
   }, [conversationId]);
 
-  function handleNewMessage(msg) {
-    setMessages((prev) => [...prev, msg]);
+  const handleWsMessage = useCallback((msg) => {
+    if (msg.type !== 'message') return;
+    if (msg.data.conversationId !== conversationId) return;
+
+    setMessages((prev) => {
+      if (prev.find((m) => m.id === msg.data.id)) return prev;
+      return [...prev, msg.data];
+    });
+  }, [conversationId]);
+
+  useChatSocket(handleWsMessage);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+
+    if (isAtBottom) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  function handleNewMessage() {
   }
 
   return (
@@ -37,14 +60,17 @@ export default function ChatWindow({ conversationId }) {
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((msg) => (
               <MessageBubble key={msg.id} message={msg} currentUserId={myId} />
             ))}
           </div>
 
           <div className="border-t p-4">
-            <MessageInput conversationId={conversationId} onSendMessage={handleNewMessage} />
+            <MessageInput
+              conversationId={conversationId}
+              onSendMessage={handleNewMessage} 
+            />
           </div>
         </>
       )}

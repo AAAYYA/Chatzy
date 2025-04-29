@@ -1,17 +1,25 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+
+import { authRoute } from './routes/auth';
 import { userRoute } from './routes/users';
 import { messagesRoute } from './routes/messages';
-import { wsApp, websocket } from './ws/socket';
-import { authRoute } from './routes/auth';
-import { cors } from 'hono/cors';
 import { conversationRoute } from './routes/conversations';
 import { friendRoute } from './routes/friends';
+
+import { wsApp, websocket } from './ws/wsServer';
 
 const app = new Hono();
 
 app.use('*', cors({
-  origin: 'http://localhost:5173',
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: (origin) => {
+    if (!origin) return '*';
+    if (origin.startsWith('http://localhost:')) return origin;
+    return '';
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 app.get('/', (c) => c.text('Welcome to Chatzy API!'));

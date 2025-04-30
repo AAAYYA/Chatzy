@@ -1,16 +1,16 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import axios from 'axios';
 import AddFriendForm from '../friends/AddFriendForm';
 import PendingRequests from '../friends/PendingRequests';
+import api from '../../lib/api';
 
 export default function Sidebar({ onSelectConversation }) {
     const { token, friends, refresh, user } = useContext(AuthContext);
 
     async function handleFriendClick(friendId) {
         try {
-            const res = await axios.post(
-                'http://localhost:3000/api/conversations',
+            const res = await api.post(
+                '/conversations',
                 { recipientId: friendId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

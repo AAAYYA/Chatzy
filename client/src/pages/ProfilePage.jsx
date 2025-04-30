@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../lib/api';
 
 export default function ProfilePage() {
   const { user, token, refresh } = useContext(AuthContext);
@@ -36,8 +36,8 @@ export default function ProfilePage() {
     setFeedback(null);
 
     try {
-      await axios.put(
-        `http://localhost:3000/api/users/${user.id}`,
+      await api.put(
+        `/users/${user.id}`,
         {
           username: formData.username.trim(),
           firstName: formData.firstName.trim(),

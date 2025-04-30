@@ -1,14 +1,14 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import axios from 'axios';
+import api from '../../lib/api';
 
 export default function PendingRequests() {
   const { token, requests, refresh } = useContext(AuthContext);
 
   async function handleRespond(requestId, action) {
     try {
-      await axios.post(
-        'http://localhost:3000/api/friends/respond',
+      await api.post(
+        '/friends/respond',
         { requestId, action },
         { headers: { Authorization: `Bearer ${token}` } }
       );

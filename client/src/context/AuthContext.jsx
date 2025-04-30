@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
 export const AuthContext = createContext();
@@ -22,9 +22,9 @@ export function AuthProvider({ children }) {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [me, friends, requests] = await Promise.all([
-        axios.get('http://localhost:3000/api/auth/me', { headers }),
-        axios.get('http://localhost:3000/api/friends', { headers }),
-        axios.get('http://localhost:3000/api/friends/requests', { headers }),
+        api.get('/auth/me', { headers }),
+        api.get('/friends', { headers }),
+        api.get('/friends/requests', { headers }),
       ]);
 
       setAuth({

@@ -1,6 +1,6 @@
-# Chatzy
+# Nubbly
 
-**Chatzy** is a real-time messaging application inspired by **Discord** and **WhatsApp**.
+**Nubbly** is a real-time messaging application inspired by **Discord** and **WhatsApp**.
 
 It focuses on **professional-grade architecture**, **instant communication**, and **modern fullstack technologies** with **real WebSocket synchronization**.
 
@@ -112,4 +112,4 @@ bun dev
 
 # ❤️ About
 
-**Chatzy** is built to serve as a learning project for professional-grade real-time applications, scaling towards **a full Discord-like experience**.
+**Nubbly** is built to serve as a learning project for professional-grade real-time applications, scaling towards **a full Discord-like experience**.

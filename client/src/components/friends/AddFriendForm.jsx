@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../lib/api';
 
 export default function AddFriendForm({ token, onSuccess }) {
   const [username, setUsername] = useState('');
@@ -14,8 +14,8 @@ export default function AddFriendForm({ token, onSuccess }) {
     setFeedback(null);
 
     try {
-      const res = await axios.post(
-        'http://localhost:3000/api/friends',
+      const res = await api.post(
+        '/friends',
         { recipientUsername: username.trim() },
         {
           headers: {

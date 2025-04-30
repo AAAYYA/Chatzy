@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext, useCallback, useRef } from 'react';
-import axios from 'axios';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import { AuthContext } from '../../context/AuthContext';
 import useChatSocket from '../../hooks/useChatSocket';
+import api from '../../lib/api';
 
 export default function ChatWindow({ conversationId }) {
   const [messages, setMessages] = useState([]);
@@ -18,8 +18,8 @@ export default function ChatWindow({ conversationId }) {
     }
 
     const token = localStorage.getItem('chatzy_token');
-    axios
-      .get(`http://localhost:3000/api/conversations/${conversationId}/messages`, {
+    api
+      .get(`conversations/${conversationId}/messages`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setMessages(res.data.data))

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../lib/api';
 
 export default function MessageInput({ conversationId, onSendMessage }) {
   const [text, setText] = useState('');
@@ -9,8 +9,8 @@ export default function MessageInput({ conversationId, onSendMessage }) {
     if (!text.trim() || !conversationId) return;
 
     try {
-      const res = await axios.post(
-        `http://localhost:3000/api/conversations/${conversationId}/messages`,
+      const res = await api.post(
+        `/conversations/${conversationId}/messages`,
         { content: text },
         { headers: { Authorization: `Bearer ${token}` } }
       );

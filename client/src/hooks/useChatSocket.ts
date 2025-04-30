@@ -10,8 +10,8 @@ export default function useChatSocket(onWsMessage?: (data: any) => void) {
       return;
     }
 
-    const ws = new WebSocket(`ws://localhost:3000/ws?token=${token}`);
-    wsRef.current = ws;
+    const WS_BASE = import.meta.env.VITE_WS_URL;
+    const ws = new WebSocket(`${WS_BASE}?token=${token}`);    wsRef.current = ws;
 
     ws.onopen = () => console.log('[WS] connected ✅');
     ws.onmessage = (e) => {

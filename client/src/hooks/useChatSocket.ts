@@ -11,9 +11,12 @@ export default function useChatSocket(onWsMessage?: (data: any) => void) {
     }
 
     const WS_BASE = import.meta.env.VITE_WS_URL;
-    const ws = new WebSocket(`${WS_BASE}?token=${encodeURIComponent(token)}`);
-    wsRef.current = ws;
-
+    const url     = new URL(WS_BASE, window.location.origin);
+    url.protocol  = url.protocol.replace('http', 'ws');
+    url.searchParams.set('token', token);
+    
+    const ws = new WebSocket(url.toString());
+    
     ws.onopen = () => console.log('[WS] connected ✅');
     ws.onmessage = (e) => {
         console.log('[WS] raw', e.data);

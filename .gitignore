@@ -1,1 +1,3 @@
 deploy.sh
+setup_nubbly_db.sh
+deploy_nubbly.sh

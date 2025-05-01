@@ -1,127 +1,144 @@
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { db } from '../../integration/orm/config';
 import { userTable } from '../../integration/orm/schema/user.schema';
+import { AServer } from '../../../core/AServer';
 import { eq } from 'drizzle-orm';
+import { logger } from 'hono/logger';
 
-const userRoute = new Hono();
 
-userRoute.get('/', async (c) => {
-  const allUsers = await db.select().from(userTable);
+export class UserRoute extends AServer {
+	constructor() {
+		super("/users")
+	}
 
-  return c.json({
-    message: 'Liste de tous les users',
-    data: allUsers,
-  });
-});
+	public routeHandler(): Hono {
+		const userRoute = new Hono();
 
-userRoute.post('/', async (c) => {
-  try {
-    const body = await c.req.json<{
-      username: string;
-      email: string;
-      firstName: string;
-      lastName: string;
-      phone: string;
-    }>();
+		userRoute.get('/', async (c) => {
+			const allUsers = await db.select().from(userTable);
 
-    const { username, email, firstName, lastName, phone } = body;
+			return c.json({
+				message: 'Liste de tous les users',
+				data: allUsers,
+			});
+		});
 
-    if (!username || !email || !firstName || !lastName || !phone) {
-      return c.json({ error: 'Tous les champs sont requis' }, 400);
-    }
+		userRoute.post('/', async (c) => {
+			try {
+				const body = await c.req.json<{
+					username: string;
+					email: string;
+					firstName: string;
+					lastName: string;
+					phone: string;
+				}>();
 
-    const inserted = await db.insert(userTable).values({
-      username,
-      email,
-      firstName,
-      lastName,
-      phone,
-    }).returning();
+				const { username, email, firstName, lastName, phone } = body;
 
-    return c.json({
-      message: 'Utilisateur créé avec succès',
-      data: inserted[0],
-    });
-  } catch (err: any) {
-    return c.json({ error: err.message }, 500);
-  }
-});
+				if (!username || !email || !firstName || !lastName || !phone) {
+					return c.json({ error: 'Tous les champs sont requis' }, 400);
+				}
 
-userRoute.get('/:id', async (c) => {
-  const idParam = c.req.param('id');
+				const inserted = await db.insert(userTable).values({
+					username,
+					email,
+					firstName,
+					lastName,
+					phone,
+				}).returning();
 
-  const id = Number(idParam);
+				return c.json({
+					message: 'Utilisateur créé avec succès',
+					data: inserted[0],
+				});
+			} catch (err: any) {
+				return c.json({ error: err.message }, 500);
+			}
+		});
 
-  const userFound = await db.select().from(userTable).where(eq(userTable.id, id));
 
-  if (userFound.length === 0) {
-    return c.json({ error: 'User not found' }, 404);
-  }
+		userRoute.get('/:id', async (c) => {
+			const idParam = c.req.param('id');
 
-  return c.json({ data: userFound[0] });
-});
+			const id = Number(idParam);
 
-userRoute.put('/:id', async (c) => {
-  try {
-    const idParam = c.req.param('id');
-    const id = Number(idParam);
-    const body = await c.req.json<{
-      username?: string;
-      firstName?: string;
-      lastName?: string;
-      phone?: string;
-      bio?: string;
-    }>();
+			const userFound = await db.select().from(userTable).where(eq(userTable.id, id));
 
-    const fieldsToUpdate: any = {};
-    if (body.username) fieldsToUpdate.username = body.username;
-    if (body.firstName) fieldsToUpdate.firstName = body.firstName;
-    if (body.lastName) fieldsToUpdate.lastName = body.lastName;
-    if (body.phone) fieldsToUpdate.phone = body.phone;
-    if (body.bio !== undefined) fieldsToUpdate.bio = body.bio;
+			if (userFound.length === 0) {
+				return c.json({ error: 'User not found' }, 404);
+			}
 
-    if (Object.keys(fieldsToUpdate).length === 0) {
-      return c.json({ error: 'No valid fields to update' }, 400);
-    }
+			return c.json({ data: userFound[0] });
+		});
 
-    const updated = await db
-      .update(userTable)
-      .set(fieldsToUpdate)
-      .where(eq(userTable.id, id))
-      .returning();
 
-    if (updated.length === 0) {
-      return c.json({ error: 'User not found' }, 404);
-    }
+		userRoute.put('/:id', async (c) => {
+			try {
+				const idParam = c.req.param('id');
+				const id = Number(idParam);
+				const body = await c.req.json<{
+					username?: string;
+					firstName?: string;
+					lastName?: string;
+					phone?: string;
+					bio?: string;
+				}>();
 
-    return c.json({
-      message: 'User updated successfully',
-      data: updated[0],
-    });
-  } catch (err: any) {
-    return c.json({ error: err.message }, 500);
-  }
-});
+				const fieldsToUpdate: any = {};
+				if (body.username) fieldsToUpdate.username = body.username;
+				if (body.firstName) fieldsToUpdate.firstName = body.firstName;
+				if (body.lastName) fieldsToUpdate.lastName = body.lastName;
+				if (body.phone) fieldsToUpdate.phone = body.phone;
+				if (body.bio !== undefined) fieldsToUpdate.bio = body.bio;
 
-userRoute.delete('/:id', async (c) => {
-  try {
-    const idParam = c.req.param('id');
-    const id = Number(idParam);
+				if (Object.keys(fieldsToUpdate).length === 0) {
+					return c.json({ error: 'No valid fields to update' }, 400);
+				}
 
-    const existing = await db.select().from(userTable).where(eq(userTable.id, id));
-    if (existing.length === 0) {
-      return c.json({ error: 'User not found' }, 404);
-    }
+				const updated = await db
+					.update(userTable)
+					.set(fieldsToUpdate)
+					.where(eq(userTable.id, id))
+					.returning();
 
-    await db.delete(userTable).where(eq(userTable.id, id));
+				if (updated.length === 0) {
+					return c.json({ error: 'User not found' }, 404);
+				}
 
-    return c.json({
-      message: 'User deleted successfully',
-      data: existing[0],
-    });
-  } catch (err: any) {
-    return c.json({ error: err.message }, 500);
-  }
-});
+				return c.json({
+					message: 'User updated successfully',
+					data: updated[0],
+				});
+			} catch (err: any) {
+				return c.json({ error: err.message }, 500);
+			}
+		});
 
-export { userRoute };
+		userRoute.delete('/:id', async (c) => {
+			try {
+				const idParam = c.req.param('id');
+				const id = Number(idParam);
+
+				const existing = await db.select().from(userTable).where(eq(userTable.id, id));
+				if (existing.length === 0) {
+					return c.json({ error: 'User not found' }, 404);
+				}
+
+				await db.delete(userTable).where(eq(userTable.id, id));
+
+				return c.json({
+					message: 'User deleted successfully',
+					data: existing[0],
+				});
+			} catch (err: any) {
+				return c.json({ error: err.message }, 500);
+			}
+		});
+
+		return userRoute;
+	}
+
+	public middlewareHandler(): Array<MiddlewareHandler> {
+		return [logger()]
+	}
+}

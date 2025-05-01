@@ -2,7 +2,7 @@
   "name": "server",
   "module": "index.ts",
   "scripts": {
-    "dev": "bun run src/index.ts",
+    "dev": "bun run --watch src/index.ts",
     "migrate:generate": "drizzle-kit generate",
     "migrate:up": "drizzle-kit up"
   },

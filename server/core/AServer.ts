@@ -1,10 +1,11 @@
+import type { IServer } from "./IServer";
 import type { Hono, MiddlewareHandler } from "hono";
 
 /**
  * Abstract base class for all server modules.
  * Implements shared logic and enforces contract via IServer.
  */
-export abstract class AServer {
+export abstract class AServer implements IServer {
     route: string;
 
     /**

@@ -26,12 +26,6 @@ export abstract class AServer implements IServer {
      * @returns {Array<MiddlewareHandler>} - An array of middleware handlers.
      */
     abstract middlewareHandler?(): Array<MiddlewareHandler>
-
-    /**
-     * Abstract method to be implemented by subclasses for handling WebSocket connections.
-     * @returns {Hono} - The Hono instance for WebSocket connections.
-     */
-    abstract wsHandler(): Hono
     /**
      * Abstract method to be implemented by subclasses for handling WebSocket connections.
      * @returns {Hono} - The Hono instance for WebSocket connections.

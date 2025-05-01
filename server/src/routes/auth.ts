@@ -1,10 +1,27 @@
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { db } from '../db';
 import { users } from '../db/schema/schema';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 import bcrypt from 'bcrypt';
 import { authMiddleware } from '../middleware/authMiddleware';
+import { AServer } from '../../core/AServer';
+
+
+export class AuthRoute extends AServer {
+    constructor() {
+        super("/auth");
+    }
+
+	public routeHandler(): Hono {
+		const authRoute = new Hono();
+		return authRoute;
+	}
+
+	public middlewareHandler(): Array<MiddlewareHandler> {
+		return [];
+	}
+}
 
 export const authRoute = new Hono();
 

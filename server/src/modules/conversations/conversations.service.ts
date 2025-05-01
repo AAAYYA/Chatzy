@@ -15,6 +15,10 @@ export class ConversationRoute extends AServer {
 
     public routeHandler(): Hono {
         const conversationRoute = new Hono();
+        
+        this.middlewareHandler?.().forEach((middleware) => {
+			conversationRoute.use(middleware);
+		})
 
         conversationRoute.post('/', authMiddleware, async (c) => {
             const userId = c.get('userId');

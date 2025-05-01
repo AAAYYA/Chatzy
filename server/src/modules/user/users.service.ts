@@ -14,6 +14,10 @@ export class UserRoute extends AServer {
 	public routeHandler(): Hono {
 		const userRoute = new Hono();
 
+		this.middlewareHandler?.().forEach((middleware) => {
+			userRoute.use(middleware);
+		});
+
 		userRoute.get('/', async (c) => {
 			const allUsers = await db.select().from(userTable);
 

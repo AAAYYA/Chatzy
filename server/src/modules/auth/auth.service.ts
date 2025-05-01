@@ -6,6 +6,7 @@ import { SignJWT } from 'jose';
 import bcrypt from 'bcrypt';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { AServer } from '../../../core/AServer';
+import { logger } from 'hono/logger';
 
 
 export class AuthRoute extends AServer {
@@ -15,6 +16,10 @@ export class AuthRoute extends AServer {
 
 	public routeHandler(): Hono {
 		const authRoute = new Hono();
+
+		this.middlewareHandler?.().forEach((middleware) => {
+			authRoute.use(middleware);
+		})
 
 		authRoute.post('/login', async (c) => {
 			try {
@@ -122,7 +127,6 @@ export class AuthRoute extends AServer {
 	}
 
 	public middlewareHandler(): Array<MiddlewareHandler> {
-		return [];
+		return [logger()];
 	}
 }
-

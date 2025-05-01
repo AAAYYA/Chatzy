@@ -16,6 +16,10 @@ export class FriendRoute extends AServer {
     public routeHandler(): Hono {
         const friendRoute = new Hono();
 
+        this.middlewareHandler?.().forEach((middleware) => {
+			friendRoute.use(middleware);
+		});
+
         friendRoute.get('/', authMiddleware, async (c) => {
             const userId = c.get('userId');
         

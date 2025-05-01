@@ -16,6 +16,10 @@ export class MessageRoute extends AServer {
 	public routeHandler(): Hono {
 		const messagesRoute = new Hono()
 
+		this.middlewareHandler?.().forEach((middleware) => {
+			messagesRoute.use(middleware);
+		})
+
 		messagesRoute.get('/', async (c) => {
 			const allMessages = await db.select().from(messageTable);
 			return c.json({ message: 'Liste de tous les messages', data: allMessages });

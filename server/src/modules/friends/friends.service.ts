@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { db } from '../db';
-import { friendships, users } from '../db/schema/schema';
+import { db } from '../../integration/orm/config';
+import { friendshipTable } from '../../integration/orm/schema/schema';
+import { userTable } from '../../integration/orm/schema/user.schema';
 import { eq, or, and } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/authMiddleware';
 
@@ -16,8 +17,8 @@ friendRoute.post('/', authMiddleware, async (c) => {
 
     const [recipientUser] = await db
         .select()
-        .from(users)
-        .where(eq(users.username, recipientUsername));
+        .from(userTable)
+        .where(eq(userTable.username, recipientUsername));
 
     if (!recipientUser) {
         return c.json({ error: 'No user found with this username' }, 404);
@@ -29,11 +30,11 @@ friendRoute.post('/', authMiddleware, async (c) => {
 
     const existing = await db
         .select()
-        .from(friendships)
+        .from(friendshipTable)
         .where(
             or(
-                and(eq(friendships.requesterId, userId), eq(friendships.recipientId, recipientUser.id)),
-                and(eq(friendships.requesterId, recipientUser.id), eq(friendships.recipientId, userId))
+                and(eq(friendshipTable.requesterId, userId), eq(friendshipTable.recipientId, recipientUser.id)),
+                and(eq(friendshipTable.requesterId, recipientUser.id), eq(friendshipTable.recipientId, userId))
             )
         );
 
@@ -42,7 +43,7 @@ friendRoute.post('/', authMiddleware, async (c) => {
     }
 
     const inserted = await db
-        .insert(friendships)
+        .insert(friendshipTable)
         .values({
             requesterId: userId,
             recipientId: recipientUser.id,
@@ -60,12 +61,12 @@ friendRoute.get('/', authMiddleware, async (c) => {
     const userId = c.get('userId');
 
     const result = await db.select()
-        .from(friendships)
+        .from(friendshipTable)
         .where(
-            and(eq(friendships.status, 'accepted'),
+            and(eq(friendshipTable.status, 'accepted'),
                 or(
-                    eq(friendships.requesterId, userId),
-                    eq(friendships.recipientId, userId)
+                    eq(friendshipTable.requesterId, userId as number),
+                    eq(friendshipTable.recipientId, userId as number)
                 )
             )
         );
@@ -79,16 +80,16 @@ friendRoute.get('/', authMiddleware, async (c) => {
     }
 
     const friends = await db.select({
-        id: users.id,
-        username: users.username,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        avatarUrl: users.avatarUrl,
-        bio: users.bio,
+        id: userTable.id,
+        username: userTable.username,
+        firstName: userTable.firstName,
+        lastName: userTable.lastName,
+        avatarUrl: userTable.avatarUrl,
+        bio: userTable.bio,
     })
-        .from(users)
+        .from(userTable)
         .where(
-            or(...friendIds.map(id => eq(users.id, id)))
+            or(...friendIds.map(id => eq(userTable.id, id)))
         );
 
     return c.json({ data: friends });
@@ -99,19 +100,19 @@ friendRoute.get('/requests', authMiddleware, async (c) => {
 
     const pending = await db
         .select({
-            id: friendships.id,
-            requesterId: friendships.requesterId,
-            createdAt: friendships.createdAt,
-            username: users.username,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            avatarUrl: users.avatarUrl,
+            id: friendshipTable.id,
+            requesterId: friendshipTable.requesterId,
+            createdAt: friendshipTable.createdAt,
+            username: userTable.username,
+            firstName: userTable.firstName,
+            lastName: userTable.lastName,
+            avatarUrl: userTable.avatarUrl,
         })
-        .from(friendships)
-        .innerJoin(users, eq(friendships.requesterId, users.id))
+        .from(friendshipTable)
+        .innerJoin(userTable, eq(friendshipTable.requesterId, userTable.id))
         .where(and(
-            eq(friendships.recipientId, userId),
-            eq(friendships.status, 'pending')
+            eq(friendshipTable.recipientId, userId as number),
+            eq(friendshipTable.status, 'pending')
         ));
 
     return c.json({ data: pending });
@@ -130,7 +131,7 @@ friendRoute.post('/respond', authMiddleware, async (c) => {
         return c.json({ error: 'Invalid payload' }, 400);
     }
 
-    const existing = await db.select().from(friendships).where(eq(friendships.id, requestId));
+    const existing = await db.select().from(friendshipTable).where(eq(friendshipTable.id, requestId));
     const request = existing[0];
 
     if (!request || request.recipientId !== userId || request.status !== 'pending') {
@@ -138,16 +139,16 @@ friendRoute.post('/respond', authMiddleware, async (c) => {
     }
 
     const updated = await db
-        .update(friendships)
+        .update(friendshipTable)
         .set({ status: action === 'accept' ? 'accepted' : 'rejected' })
-        .where(eq(friendships.id, requestId))
+        .where(eq(friendshipTable.id, requestId))
         .returning();
 
     return c.json({ message: `Request ${action}ed`, data: updated[0] });
 });
 
 friendRoute.get('/debug', async (c) => {
-    const all = await db.select().from(friendships);
+    const all = await db.select().from(friendshipTable);
     return c.json({ data: all });
 });
 

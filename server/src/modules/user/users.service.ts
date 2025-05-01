@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
-import { db } from '../db';
-import { users } from '../db/schema/schema';
+import { db } from '../../integration/orm/config';
+import { userTable } from '../../integration/orm/schema/user.schema';
 import { eq } from 'drizzle-orm';
 
 const userRoute = new Hono();
 
 userRoute.get('/', async (c) => {
-  const allUsers = await db.select().from(users);
+  const allUsers = await db.select().from(userTable);
 
   return c.json({
     message: 'Liste de tous les users',
@@ -30,7 +30,7 @@ userRoute.post('/', async (c) => {
       return c.json({ error: 'Tous les champs sont requis' }, 400);
     }
 
-    const inserted = await db.insert(users).values({
+    const inserted = await db.insert(userTable).values({
       username,
       email,
       firstName,
@@ -52,7 +52,7 @@ userRoute.get('/:id', async (c) => {
 
   const id = Number(idParam);
 
-  const userFound = await db.select().from(users).where(eq(users.id, id));
+  const userFound = await db.select().from(userTable).where(eq(userTable.id, id));
 
   if (userFound.length === 0) {
     return c.json({ error: 'User not found' }, 404);
@@ -85,9 +85,9 @@ userRoute.put('/:id', async (c) => {
     }
 
     const updated = await db
-      .update(users)
+      .update(userTable)
       .set(fieldsToUpdate)
-      .where(eq(users.id, id))
+      .where(eq(userTable.id, id))
       .returning();
 
     if (updated.length === 0) {
@@ -108,12 +108,12 @@ userRoute.delete('/:id', async (c) => {
     const idParam = c.req.param('id');
     const id = Number(idParam);
 
-    const existing = await db.select().from(users).where(eq(users.id, id));
+    const existing = await db.select().from(userTable).where(eq(userTable.id, id));
     if (existing.length === 0) {
       return c.json({ error: 'User not found' }, 404);
     }
 
-    await db.delete(users).where(eq(users.id, id));
+    await db.delete(userTable).where(eq(userTable.id, id));
 
     return c.json({
       message: 'User deleted successfully',

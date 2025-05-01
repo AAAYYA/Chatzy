@@ -2,8 +2,8 @@ import { Hono } from 'hono';
 import { createBunWebSocket } from 'hono/bun';
 import type { ServerWebSocket } from 'bun';
 import { jwtVerify } from 'jose';
-import { db } from '../db';
-import { conversations } from '../db/schema/schema';
+import { db } from '../integration/orm/config';
+import { conversations } from '../integration/orm/schema/schema';
 import { eq, or } from 'drizzle-orm';
 
 const { upgradeWebSocket, websocket } = createBunWebSocket();

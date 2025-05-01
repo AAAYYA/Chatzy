@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 
-import { AuthRoute, authRoute } from './routes/auth';
+import { AuthRoute, authRoute } from './modules/auth/auth.service';
 import { userRoute } from './routes/users';
 import { messagesRoute } from './routes/messages';
-import { conversationRoute } from './routes/conversations';
+import { conversationRoute } from './modules/conversations/conversations.service';
 import { friendRoute } from './routes/friends';
 
 import { wsApp, websocket } from './ws/wsServer';

@@ -3,7 +3,7 @@ import { createBunWebSocket } from 'hono/bun';
 import type { ServerWebSocket } from 'bun';
 import { jwtVerify } from 'jose';
 import { db } from '../integration/orm/config';
-import { conversations } from '../integration/orm/schema/schema';
+import { conversationTable } from '../integration/orm/schema/schema';
 import { eq, or } from 'drizzle-orm';
 
 const { upgradeWebSocket, websocket } = createBunWebSocket();
@@ -79,8 +79,8 @@ wsApp.get(
         }
 
         try {
-          const conv = await db.select().from(conversations).where(
-            eq(conversations.id, conversationId)
+          const conv = await db.select().from(conversationTable).where(
+            eq(conversationTable.id, conversationId)
           );
 
           if (!conv.length) {

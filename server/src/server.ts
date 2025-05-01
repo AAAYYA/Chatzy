@@ -4,10 +4,10 @@ import { cors } from 'hono/cors';
 import { AuthRoute } from './modules/auth/auth.service';
 import { UserRoute } from './modules/user/users.service';
 import { MessageRoute } from './modules/messages/messages.service';
-import { conversationRoute } from './modules/conversations/conversations.service';
+import { ConversationRoute } from './modules/conversations/conversations.service';
 import { FriendRoute } from './modules/friends/friends.service';
 
-import { wsApp, websocket } from './ws/wsServer';
+import { wsApp } from './ws/wsServer';
 import type { IServer } from '../core/IServer';
 
 const app = new Hono().basePath('/api');
@@ -19,7 +19,8 @@ const services: Array<IServer> = [
 	new AuthRoute(),
 	new FriendRoute(),
 	new UserRoute(),
-	new MessageRoute()
+	new MessageRoute(),
+	new ConversationRoute()
 ]
 
 app.use('*', cors({
@@ -35,6 +36,9 @@ app.use('*', cors({
 
 console.timeLog("Server boot time", "Loading services...");
 
+app.get('/', (c) => c.text('Welcome to Chatzy API!'));
+app.route('/', wsApp);
+
 services.forEach((service) => {
 	app.route(service.route, service.routeHandler());
 	if (service.middlewareHandler) {
@@ -46,15 +50,4 @@ services.forEach((service) => {
 
 console.timeEnd("Server boot time");
 
-app.get('/', (c) => c.text('Welcome to Chatzy API!'));
-
-
-app.route('/conversations', conversationRoute);
-
-app.route('/', wsApp);
-
-Bun.serve({
-	fetch: app.fetch,
-	websocket,
-	port: 3000,
-});
+export default app;

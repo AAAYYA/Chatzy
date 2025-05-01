@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 
-import { AuthRoute, authRoute } from './modules/auth/auth.service';
-import { userRoute } from './routes/users';
-import { messagesRoute } from './routes/messages';
+import { AuthRoute } from './modules/auth/auth.service';
+import { userRoute } from './modules/user/users.service';
+import { messagesRoute } from './modules/messages/messages.service';
 import { conversationRoute } from './modules/conversations/conversations.service';
-import { friendRoute } from './routes/friends';
+import { FriendRoute } from './modules/friends/friends.service';
 
 import { wsApp, websocket } from './ws/wsServer';
 import type { IServer } from '../core/IServer';
@@ -17,6 +17,7 @@ console.timeLog("Server boot time", "Starting server...");
 
 const services: Array<IServer> = [
   new AuthRoute(),
+  new FriendRoute()
 ]
 
 app.use('*', cors({
@@ -47,12 +48,9 @@ console.timeEnd("Server boot time");
 app.get('/', (c) => c.text('Welcome to Chatzy API!'));
 
 
-
-app.route('/auth', authRoute);
 app.route('/users', userRoute);
 app.route('/messages', messagesRoute);
 app.route('/conversations', conversationRoute);
-app.route('/friends', friendRoute);
 
 app.route('/', wsApp);
 

@@ -1,6 +1,6 @@
 import { Hono, type MiddlewareHandler } from 'hono';
 import { db } from '../../integration/orm/config';
-import { users } from '../../integration/orm/schema/schema';
+import { userTable } from '../../integration/orm/schema/user.schema';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 import bcrypt from 'bcrypt';
@@ -25,7 +25,7 @@ export class AuthRoute extends AServer {
 					return c.json({ error: 'Username et password requis' }, 400);
 				}
 
-				const found = await db.select().from(users).where(eq(users.username, username));
+				const found = await db.select().from(userTable).where(eq(userTable.username, username));
 				const user = found[0];
 				if (!user) {
 					return c.json({ error: 'Utilisateur introuvable' }, 404);
@@ -66,9 +66,9 @@ export class AuthRoute extends AServer {
 				}
 
 				const [byUsername, byEmail, byPhone] = await Promise.all([
-					db.select().from(users).where(eq(users.username, username)),
-					db.select().from(users).where(eq(users.email, email)),
-					db.select().from(users).where(eq(users.phone, phone)),
+					db.select().from(userTable).where(eq(userTable.username, username)),
+					db.select().from(userTable).where(eq(userTable.email, email)),
+					db.select().from(userTable).where(eq(userTable.phone, phone)),
 				]);
 
 				if (byUsername.length || byEmail.length || byPhone.length) {
@@ -77,7 +77,7 @@ export class AuthRoute extends AServer {
 
 				const hashedPassword = await bcrypt.hash(password, 10);
 
-				const inserted = await db.insert(users).values({
+				const inserted = await db.insert(userTable).values({
 					username,
 					email,
 					firstName,
@@ -104,6 +104,20 @@ export class AuthRoute extends AServer {
 			}
 		});
 
+		authRoute.get('/me', authMiddleware, async (c) => {
+			const userId = c.get('userId');
+
+			const [user] = await db.select().from(userTable).where(eq(userTable.id, userId as number));
+
+			if (!user) {
+				return c.json({ error: 'User not found' }, 404);
+			}
+
+			const { password, ...safeUser } = user;
+
+			return c.json({ data: safeUser });
+		});
+
 		return authRoute;
 	}
 
@@ -112,19 +126,3 @@ export class AuthRoute extends AServer {
 	}
 }
 
-export const authRoute = new Hono();
-
-
-authRoute.get('/me', authMiddleware, async (c) => {
-  const userId = c.get('userId');
-
-  const [user] = await db.select().from(users).where(eq(users.id, userId));
-
-  if (!user) {
-    return c.json({ error: 'User not found' }, 404);
-  }
-
-  const { password, ...safeUser } = user;
-
-  return c.json({ data: safeUser });
-});

@@ -1,14 +1,17 @@
+import { userTable } from '../../integration/orm/schema/user.schema';
+import { UserRepository } from './users.repository';
 import { Hono, type MiddlewareHandler } from 'hono';
 import { db } from '../../integration/orm/config';
-import { userTable } from '../../integration/orm/schema/user.schema';
 import { AServer } from '../../../core/AServer';
-import { eq } from 'drizzle-orm';
 import { logger } from 'hono/logger';
-
+import { eq } from 'drizzle-orm';
 
 export class UserRoute extends AServer {
+	private userRepository: UserRepository;
+
 	constructor() {
-		super("/users")
+		super("/users");
+		this.userRepository = new UserRepository();
 	}
 
 	public routeHandler(): Hono {
@@ -19,12 +22,8 @@ export class UserRoute extends AServer {
 		});
 
 		userRoute.get('/', async (c) => {
-			const allUsers = await db.select().from(userTable);
-
-			return c.json({
-				message: 'Liste de tous les users',
-				data: allUsers,
-			});
+			const allUsers = await this.userRepository.getAllUser();
+			return c.json({ message: 'Liste de tous les users', data: allUsers });
 		});
 
 		userRoute.post('/', async (c) => {

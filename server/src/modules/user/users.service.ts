@@ -64,7 +64,7 @@ export class UserRoute extends AServer {
 		userRoute.get('/:id', async (c) => {
 			const idParam = c.req.param('id');
 
-			const id = Number(idParam);
+			const id = idParam;
 
 			const userFound = await db.select().from(userTable).where(eq(userTable.id, id));
 
@@ -79,7 +79,7 @@ export class UserRoute extends AServer {
 		userRoute.put('/:id', async (c) => {
 			try {
 				const idParam = c.req.param('id');
-				const id = Number(idParam);
+				const id = idParam;
 				const body = await c.req.json<{
 					username?: string;
 					firstName?: string;
@@ -121,7 +121,7 @@ export class UserRoute extends AServer {
 		userRoute.delete('/:id', async (c) => {
 			try {
 				const idParam = c.req.param('id');
-				const id = Number(idParam);
+				const id = idParam;
 
 				const existing = await db.select().from(userTable).where(eq(userTable.id, id));
 				if (existing.length === 0) {

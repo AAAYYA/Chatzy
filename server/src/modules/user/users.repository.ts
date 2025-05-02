@@ -17,6 +17,10 @@ export class UserRepository extends AUser {
         return (await db.select({id: userTable.id, email: userTable.email}).from(userTable).where(eq(userTable.id, id)))[0]
     }
 
+    public async getUserByUsername(username: string): Promise<ASelectUser> {
+        return (await db.select().from(userTable).where(eq(userTable.username, username)))[0]
+    }
+
     public async createUser(email: string, password: string, username: string): Promise<AInsertUser> {
         return (await db.insert(userTable).values({email, password, username}).returning())[0]
     }

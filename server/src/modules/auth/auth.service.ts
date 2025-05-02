@@ -3,12 +3,11 @@ import { db } from '../../integration/orm/config';
 import { userTable } from '../../integration/orm/schema/user.schema';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
-import bcrypt from 'bcrypt';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { AServer } from '../../../core/AServer';
 import { logger } from 'hono/logger';
 import { zValidator } from '@hono/zod-validator';
-import { registerSchema } from '../utils/zod.schema';
+import { loginSchema, registerSchema } from '../utils/zod.schema';
 import { UserRepository } from '../user/users.repository';
 
 
@@ -27,7 +26,7 @@ export class AuthRoute extends AServer {
 			authRoute.use(middleware);
 		})
 
-		authRoute.post('/login', async (c) => {
+		authRoute.post('/login', zValidator("json", loginSchema), async (c) => {
 			try {
 				const body = await c.req.json<{ username: string; password: string }>();
 				const { username, password } = body;
@@ -36,13 +35,12 @@ export class AuthRoute extends AServer {
 					return c.json({ error: 'Username et password requis' }, 400);
 				}
 
-				const found = await db.select().from(userTable).where(eq(userTable.username, username));
-				const user = found[0];
+				const user = await this.userRepository.getUserByUsername(username);
 				if (!user) {
 					return c.json({ error: 'Utilisateur introuvable' }, 404);
 				}
 
-				const isValid = await bcrypt.compare(password, user.password);
+				const isValid = await Bun.password.verify(password, user.password);
 				if (!isValid) {
 					return c.json({ error: 'Mot de passe incorrect' }, 403);
 				}
@@ -77,13 +75,7 @@ export class AuthRoute extends AServer {
 
 				const hashedPassword = await Bun.password.hash(password, "bcrypt");
 
-				const inserted = await db.insert(userTable).values({
-					username,
-					email,
-					password: hashedPassword,
-				}).returning();
-
-				const user = inserted[0];
+				const user = await this.userRepository.createUser(email, hashedPassword, username);
 
 				const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 				const token = await new SignJWT({ userId: user.id, userEmail: user.email })

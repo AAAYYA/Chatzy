@@ -3,7 +3,7 @@ import { createBunWebSocket } from 'hono/bun';
 import type { ServerWebSocket } from 'bun';
 import { jwtVerify } from 'jose';
 import { db } from '../integration/orm/config';
-import { conversationTable } from '../integration/orm/schema/schema';
+import { conversationTable } from '../integration/orm/schema/conversation.schema';
 import { eq, or } from 'drizzle-orm';
 
 const { upgradeWebSocket, websocket } = createBunWebSocket();

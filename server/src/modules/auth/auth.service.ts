@@ -28,8 +28,7 @@ export class AuthRoute extends AServer {
 
 		authRoute.post('/login', zValidator("json", loginSchema), async (c) => {
 			try {
-				const body = await c.req.json<{ username: string; password: string }>();
-				const { username, password } = body;
+				const { username, password } = c.req.valid("json");
 
 				if (!username || !password) {
 					return c.json({ error: 'Username et password requis' }, 400);
@@ -96,7 +95,7 @@ export class AuthRoute extends AServer {
 		authRoute.get('/me', authMiddleware, async (c) => {
 			const userId = c.get('userId');
 
-			const [user] = await db.select().from(userTable).where(eq(userTable.id, userId as number));
+			const user = await this.userRepository.getUserByID(userId as string);
 
 			if (!user) {
 				return c.json({ error: 'User not found' }, 404);

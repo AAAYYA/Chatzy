@@ -13,8 +13,8 @@ export class UserRepository extends AUser {
         return (await db.select().from(userTable).where(eq(userTable.email, email)))[0]
     }
 
-    public async getUserByID(id: string): Promise<{ id: string; email: string; }> {
-        return (await db.select({id: userTable.id, email: userTable.email}).from(userTable).where(eq(userTable.id, id)))[0]
+    public async getUserByID(id: string): Promise<ASelectUser> {
+        return (await db.select().from(userTable).where(eq(userTable.id, id)))[0]
     }
 
     public async getUserByUsername(username: string): Promise<ASelectUser> {

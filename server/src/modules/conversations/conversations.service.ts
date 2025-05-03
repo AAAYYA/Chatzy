@@ -4,9 +4,9 @@ import { messageTable } from '../../integration/orm/schema/message.schema';
 import { conversationTable } from '../../integration/orm/schema/conversation.schema';
 import { eq, or, and } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/authMiddleware';
-import { pushToUser } from '../../ws/wsServer';
 import { AServer } from '../../../core/AServer';
 import { logger } from 'hono/logger';
+import { pushToUser } from '../../ws/redisPush';
 
 
 export class ConversationRoute extends AServer {

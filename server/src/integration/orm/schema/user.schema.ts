@@ -1,22 +1,21 @@
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import { pgTable, serial, text, varchar, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, varchar, timestamp, uniqueIndex, boolean, date } from 'drizzle-orm/pg-core';
 
 export const userTable = pgTable('users', {
-    id: serial('id').primaryKey(),
+    id: uuid('id').primaryKey().defaultRandom(),
     username: varchar('username', { length: 255 }).notNull(),
     email: varchar('email', { length: 255 }).notNull().unique(),
-    firstName: varchar('first_name', { length: 255 }).notNull(),
-    lastName: varchar('last_name', { length: 255 }).notNull(),
-    phone: varchar('phone', { length: 20 }).notNull(),
+    phone: varchar('phone', { length: 20 }),
     password: varchar('password', { length: 255 }).notNull(),
     avatarUrl: text('avatar_url'),
     bio: text('bio'),
+    is_verified: boolean("isVeridfied").default(false),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => {
     return [
-        uniqueIndex('users_username_unique').on(table.username),
-        uniqueIndex('users_email_unique').on(table.email),
-        uniqueIndex('users_phone_unique').on(table.phone),
+        uniqueIndex('userTable_username_idx').on(table.username),
+        uniqueIndex('userTable_email_idx').on(table.email),
+        uniqueIndex('userTable_phone_idx').on(table.phone),
     ];
 });
 

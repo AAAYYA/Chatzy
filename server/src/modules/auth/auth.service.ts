@@ -3,15 +3,20 @@ import { db } from '../../integration/orm/config';
 import { userTable } from '../../integration/orm/schema/user.schema';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
-import bcrypt from 'bcrypt';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { AServer } from '../../../core/AServer';
 import { logger } from 'hono/logger';
+import { zValidator } from '@hono/zod-validator';
+import { loginSchema, registerSchema } from '../utils/zod.schema';
+import { UserRepository } from '../user/users.repository';
 
 
 export class AuthRoute extends AServer {
+	private userRepository: UserRepository;
+
 	constructor() {
 		super("/auth");
+		this.userRepository = new UserRepository();
 	}
 
 	public routeHandler(): Hono {
@@ -21,22 +26,20 @@ export class AuthRoute extends AServer {
 			authRoute.use(middleware);
 		})
 
-		authRoute.post('/login', async (c) => {
+		authRoute.post('/login', zValidator("json", loginSchema), async (c) => {
 			try {
-				const body = await c.req.json<{ username: string; password: string }>();
-				const { username, password } = body;
+				const { username, password } = c.req.valid("json");
 
 				if (!username || !password) {
 					return c.json({ error: 'Username et password requis' }, 400);
 				}
 
-				const found = await db.select().from(userTable).where(eq(userTable.username, username));
-				const user = found[0];
+				const user = await this.userRepository.getUserByUsername(username);
 				if (!user) {
 					return c.json({ error: 'Utilisateur introuvable' }, 404);
 				}
 
-				const isValid = await bcrypt.compare(password, user.password);
+				const isValid = await Bun.password.verify(password, user.password);
 				if (!isValid) {
 					return c.json({ error: 'Mot de passe incorrect' }, 403);
 				}
@@ -53,48 +56,28 @@ export class AuthRoute extends AServer {
 			}
 		});
 
-		authRoute.post('/register', async (c) => {
+		authRoute.post('/register', zValidator("json", registerSchema), async (c) => {
 			try {
-				const body = await c.req.json<{
-					username: string;
-					email: string;
-					firstName: string;
-					lastName: string;
-					phone: string;
-					password: string;
-				}>();
+				const { email, password, username } = c.req.valid("json");
 
-				const { username, email, firstName, lastName, phone, password } = body;
+				if (!email || !password || !username)
+					return c.json({ message: "Indentifier not valid" }); 
 
-				if (!username || !email || !firstName || !lastName || !phone || !password) {
-					return c.json({ error: 'Tous les champs sont requis' }, 400);
-				}
-
-				const [byUsername, byEmail, byPhone] = await Promise.all([
-					db.select().from(userTable).where(eq(userTable.username, username)),
-					db.select().from(userTable).where(eq(userTable.email, email)),
-					db.select().from(userTable).where(eq(userTable.phone, phone)),
+				const [byUsername, byEmail] = await Promise.all([
+					this.userRepository.getUserByUsername(username),
+					this.userRepository.getUserByEmail(email),
 				]);
 
-				if (byUsername.length || byEmail.length || byPhone.length) {
+				if (byUsername || byEmail) {
 					return c.json({ error: 'Un utilisateur existe déjà avec ces informations' }, 409);
 				}
 
-				const hashedPassword = await bcrypt.hash(password, 10);
+				const hashedPassword = await Bun.password.hash(password, "bcrypt");
 
-				const inserted = await db.insert(userTable).values({
-					username,
-					email,
-					firstName,
-					lastName,
-					phone,
-					password: hashedPassword,
-				}).returning();
-
-				const user = inserted[0];
+				const user = await this.userRepository.createUser(email, hashedPassword, username);
 
 				const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
-				const token = await new SignJWT({ userId: user.id })
+				const token = await new SignJWT({ userId: user.id, userEmail: user.email })
 					.setProtectedHeader({ alg: 'HS256' })
 					.setExpirationTime('7d')
 					.sign(secret);
@@ -112,7 +95,7 @@ export class AuthRoute extends AServer {
 		authRoute.get('/me', authMiddleware, async (c) => {
 			const userId = c.get('userId');
 
-			const [user] = await db.select().from(userTable).where(eq(userTable.id, userId as number));
+			const user = await this.userRepository.getUserByID(userId as string);
 
 			if (!user) {
 				return c.json({ error: 'User not found' }, 404);

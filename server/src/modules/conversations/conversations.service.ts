@@ -1,6 +1,7 @@
 import { Hono, type MiddlewareHandler } from 'hono';
 import { db } from '../../integration/orm/config';
-import { conversationTable, messageTable } from '../../integration/orm/schema/schema';
+import { messageTable } from '../../integration/orm/schema/message.schema';
+import { conversationTable } from '../../integration/orm/schema/conversation.schema';
 import { eq, or, and } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { AServer } from '../../../core/AServer';

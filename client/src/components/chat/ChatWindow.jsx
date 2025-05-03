@@ -49,9 +49,13 @@ export default function ChatWindow({ conversationId }) {
     }
   }, [messages]);
 
-  function handleNewMessage() {
+  function handleNewMessage(msg) {
+    setMessages(prev => {
+      if (prev.find(m => m.id === msg.id)) return prev;
+      return [...prev, msg];
+    });
   }
-
+  
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-white">
       {!conversationId ? (

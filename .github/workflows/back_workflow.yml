@@ -1,0 +1,29 @@
+name: Backend CI/CD Workflow
+
+on:
+    release:
+        types: [published, created]
+    push:
+        branches:
+            - main
+            - 15-create-github-actions-for-deployment
+    pull_request:
+        branches:
+            - main
+            - dev
+            - 15-create-github-actions-for-deployment
+
+jobs:
+    build:
+        name: Build, test, and push docker image
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Bun
+              uses: oven-sh/setup-bun@v2
+            
+            - name: install dependencies
+              run: bun install
+              working-directory: ./server

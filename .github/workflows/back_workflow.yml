@@ -6,12 +6,10 @@ on:
     push:
         branches:
             - main
-            - 15-create-github-actions-for-deployment
     pull_request:
         branches:
             - main
             - dev
-            - 15-create-github-actions-for-deployment
 
 jobs:
     build:
@@ -25,5 +23,9 @@ jobs:
               uses: oven-sh/setup-bun@v2
             
             - name: install dependencies
-              run: bun install
               working-directory: ./server
+              run: bun install
+            
+            - name: Build the docker image
+              working-directory: ./server
+              run: docker build -t nubbly_backend .

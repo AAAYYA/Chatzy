@@ -1,0 +1,31 @@
+name: Backend CI/CD Workflow
+
+on:
+    release:
+        types: [published, created]
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+            - dev
+
+jobs:
+    build:
+        name: "Backend:  Build, test, and push docker image"
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Bun
+              uses: oven-sh/setup-bun@v2
+            
+            - name: install dependencies
+              working-directory: ./server
+              run: bun install
+            
+            - name: Build the docker image
+              working-directory: ./server
+              run: docker build -t nubbly_backend .

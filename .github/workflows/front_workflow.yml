@@ -1,0 +1,49 @@
+name: Frontend CI/CD Workflow
+
+on:
+  release:
+    types: [published, created]
+  push:
+    branches:
+      - main
+      - 15-create-github-actions-for-deployment
+  pull_request:
+    branches:
+      - main
+      - dev
+      - 15-create-github-actions-for-deployment
+
+jobs:
+    build:
+        name: "Frontend: Build, test, and push docker image"
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: ['18.x', '20.x']
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+    
+        - name: Set up Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: ${{ matrix.node-version}}
+    
+        - name: install dependencies
+          run: npm install
+          working-directory: ./client
+    
+        - name: Build the app
+          run: npm run build
+          working-directory: ./client
+    
+        # - name: Run tests
+        #   run: bun test
+        #   working-directory: ./client
+    
+        - name: Build Docker image
+          run: docker build -t nubbly_frontend .
+          working-directory: ./client
+    
+        # - name: Push Docker image to Docker Hub
+        #   run: docker push nubbly_frontend

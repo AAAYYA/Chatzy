@@ -9,6 +9,7 @@ services:
       - PORT=3000
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379
     depends_on:
       redis:
         condition: service_started
@@ -17,10 +18,25 @@ services:
     networks:
       - nub_network
   
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "3001:3000"
+    networks:
+      - nub_network
+    restart: always
+    volumes:
+      - grafana_data:/var/lib/grafana
+
   frontend:
     build:
       context: ./client
       dockerfile: Dockerfile
+    container_name: nubbly_frontend
     ports:
       - "5173:5173"
     depends_on:
@@ -43,3 +59,6 @@ services:
 networks:
   nub_network:
     driver: bridge
+
+volumes:
+  grafana_data:

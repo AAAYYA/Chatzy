@@ -15,7 +15,7 @@ on:
 
 jobs:
     build:
-        name: Build, test, and push docker image
+        name: "Backend:  Build, test, and push docker image"
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
